@@ -3,6 +3,26 @@
 A local AI-powered document assistant for chatting with PDFs,
 retrieving relevant information, and comparing multiple documents.
 
+
+📸 Application Screenshots
+1. Home Interface
+
+
+
+
+2. PDF Upload and Management
+
+
+
+
+3. Chat with PDFs
+
+
+
+
+4. Document Comparison
+
+
 KnowledgeHub AI uses Retrieval-Augmented Generation (RAG), hybrid
 retrieval, reranking, and a locally running language model through a
 Streamlit interface.
@@ -246,3 +266,8 @@ Optional deployment configuration.
 Mokshagna Raju Borra
 
 GitHub: Mokshagna-Raju
+
+
+
+
+
