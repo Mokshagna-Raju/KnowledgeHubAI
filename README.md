@@ -4,24 +4,23 @@ A local AI-powered document assistant for chatting with PDFs,
 retrieving relevant information, and comparing multiple documents.
 
 
-📸 Application Screenshots
-1. Home Interface
+## 📸 Application Screenshots
+
+### Home Interface
+![KnowledgeHub AI Home](screenshots/knp-interface.jpeg)
+
+### PDF Upload and Management
+![PDF Management](screenshots/knp-features.jpeg)
 
 
 
 
-2. PDF Upload and Management
+### Chat with PDFs
+![Chat with PDFs](screenshots/klp-chat.png)
+![Chat with PDFs](screenshots/knp-chat2.png)
 
-
-
-
-3. Chat with PDFs
-
-
-
-
-4. Document Comparison
-
+### Document Comparison
+![Document Comparison](screenshots/knp-comparison.jpeg)
 
 KnowledgeHub AI uses Retrieval-Augmented Generation (RAG), hybrid
 retrieval, reranking, and a locally running language model through a
