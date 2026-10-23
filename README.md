@@ -17,7 +17,7 @@ retrieving relevant information, and comparing multiple documents.
 
 ### Chat with PDFs
 ![Chat with PDFs](screenshots/klp-chat.png)
-![Chat with PDFs](screenshots/knp-chat2.png)
+![Chat with PDFs](screenshots/knp-chat2.jpeg)
 
 ### Document Comparison
 ![Document Comparison](screenshots/knp-comparison.jpeg)
