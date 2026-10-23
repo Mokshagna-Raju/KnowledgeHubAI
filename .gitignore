@@ -1,0 +1,40 @@
+# Python cache
+
+**pycache**/
+*.py[cod]
+
+# Virtual environments
+
+venv/
+.venv/
+env/
+
+# Environment variables and secrets
+
+.env
+.env.*
+
+# Local databases
+
+*.db
+*.sqlite
+*.sqlite3
+
+# ChromaDB vector database
+
+chroma_db/
+
+# Uploaded documents
+
+data/documents/
+*.pdf
+
+# Generated files
+
+output/
+*.log
+
+# IDE settings
+
+.vscode/
+.idea/
