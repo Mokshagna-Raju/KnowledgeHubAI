@@ -426,6 +426,17 @@ def retrieve_documents(
         key=lambda item: float(item[1]),
         reverse=True
     )
+    print("\n--- RERANKER SCORE DETAILS ---")
+
+    for document, score in reranked_results:
+        print(
+            f"Score: {float(score):.4f} | "
+            f"Source: {document.metadata.get('source', 'Unknown')} | "
+            f"Page: {document.metadata.get('page', 'Unknown')}"
+        )
+
+    print(f"Required minimum score: {RERANKER_MIN_SCORE}")
+    print("--- END RERANKER SCORE DETAILS ---\n")
 
     # Filter each passage individually. Checking only the top score can allow
     # weaker, unrelated passages from other PDFs to appear as sources.
