@@ -607,7 +607,7 @@ def create_rag_chain(model_name):
 
     vector_store = create_vector_store()
 
-    llm = create_llm(model_name)
+    llm = create_llm(model_name,num_predict=256)
 
     prompt = ChatPromptTemplate.from_template(
         """
@@ -695,7 +695,8 @@ def ask_question(
     )
 
     llm = create_llm(
-        LLM_MODEL
+        LLM_MODEL,
+        num_predict=256
     )
 
     chain_end = time.perf_counter()
