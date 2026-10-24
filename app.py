@@ -1,4 +1,5 @@
 from pathlib import Path
+import os
 
 import streamlit as st
 
@@ -43,7 +44,16 @@ st.set_page_config(
 initialize_database()
 
 st.title("📚 KnowledgeHub AI")
-st.caption(f"Powered by Ollama · Model: {LLM_MODEL}")
+provider = os.getenv("LLM_PROVIDER", "ollama").lower()
+
+if provider == "groq":
+    model_display = os.getenv(
+        "GROQ_MODEL",
+        "llama-3.3-70b-versatile"
+    )
+    st.caption(f"Powered by Groq · Model: {model_display}")
+else:
+    st.caption(f"Powered by Ollama · Model: {LLM_MODEL}")
 st.caption(
     "Your local AI assistant for searching, understanding, "
     "and comparing documents."
