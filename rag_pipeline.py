@@ -70,7 +70,7 @@ def create_vector_store():
 # LANGUAGE MODEL
 # --------------------------------------------------
 
-```python
+
 @st.cache_resource
 def create_llm(model_name, num_predict=128):
     """Initialize the configured local or hosted language model."""
@@ -120,7 +120,7 @@ def create_llm(model_name, num_predict=128):
     raise ValueError(
         f"Unsupported LLM_PROVIDER: {provider}"
     )
-```
+
 
 # --------------------------------------------------
 # CROSS-ENCODER RERANKER
