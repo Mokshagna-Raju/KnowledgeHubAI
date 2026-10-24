@@ -11,3 +11,4 @@ sentence-transformers
 pymupdf
 python-dotenv
 langchain-groq
+rank-bm25
