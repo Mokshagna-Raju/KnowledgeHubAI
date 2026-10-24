@@ -12,6 +12,8 @@ from langchain_core.documents import Document
 from rank_bm25 import BM25Okapi
 from sentence_transformers import CrossEncoder
 import re
+import os
+from langchain_groq import ChatGroq
 
 
 # --------------------------------------------------
@@ -70,38 +72,61 @@ def create_vector_store():
 
 @st.cache_resource
 def create_llm(model_name, num_predict=128):
-    """Initialize the Ollama language model.
+    """Initialize the configured local or hosted language model."""
 
-    Normal PDF chat keeps its original short response limit.
-    Document comparison can request a larger limit separately.
-    """
+    provider = os.getenv("LLM_PROVIDER")
 
-    print(f"Initializing LLM: {model_name} (num_predict={num_predict})")
+if not provider:
+    try:
+        provider = st.secrets.get("LLM_PROVIDER", "ollama")
+    except Exception:
+        provider = "ollama"
 
-    start = time.perf_counter()
+provider = provider.lower()
 
-    llm = ChatOllama(
-        model=model_name,
-        temperature=0,
-        num_predict=num_predict,
-        keep_alive="10m"
+    print(f"Initializing LLM provider: {provider}")
+
+    if provider == "groq":
+        try:
+            api_key = st.secrets["GROQ_API_KEY"]
+        except (KeyError, FileNotFoundError):
+            api_key = os.getenv("GROQ_API_KEY")
+
+        if not api_key:
+            raise ValueError(
+                "GROQ_API_KEY is missing. "
+                "Configure it in Streamlit secrets."
+            )
+
+        return ChatGroq(
+            model=os.getenv("GROQ_MODEL", "openai/gpt-oss-120b"),
+            api_key=api_key,
+            temperature=0,
+            max_tokens=num_predict,
+        )
+
+    if provider == "ollama":
+        return ChatOllama(
+            model=model_name,
+            temperature=0,
+            num_predict=num_predict,
+            keep_alive="10m",
+        )
+
+    raise ValueError(
+        f"Unsupported LLM_PROVIDER: {provider}"
     )
-
-    end = time.perf_counter()
-
-    print(
-        f"LLM client initialization: "
-        f"{end - start:.3f} seconds"
-    )
-
-    return llm
-
 
 # --------------------------------------------------
 # CROSS-ENCODER RERANKER
 # --------------------------------------------------
 
 RERANKER_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+
+# Cross-encoder scores are relevance logits, not probabilities. A score below
+# this configurable floor is treated as insufficient evidence for answering.
+# Start at 0.0 and tune using questions against your own PDFs if needed.
+RERANKER_MIN_SCORE = float(os.getenv("RERANKER_MIN_SCORE", "0.0"))
 
 
 @st.cache_resource
@@ -395,6 +420,20 @@ def retrieve_documents(
         key=lambda item: float(item[1]),
         reverse=True
     )
+
+    # Reject the entire retrieval result when even its best passage is below
+    # the relevance floor. This prevents unrelated PDFs from being shown as
+    # sources for questions such as asking about a person not in the documents.
+    if not reranked_results or float(reranked_results[0][1]) < RERANKER_MIN_SCORE:
+        best_score = (
+            float(reranked_results[0][1]) if reranked_results else None
+        )
+        print(
+            f"No sufficiently relevant passages. Best reranker score: "
+            f"{best_score}; required: {RERANKER_MIN_SCORE}"
+        )
+        print("--- END HYBRID RETRIEVAL ---\n")
+        return []
 
     # --------------------------------------------------
     # 7. SELECT FINAL CHUNKS
