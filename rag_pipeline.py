@@ -70,19 +70,20 @@ def create_vector_store():
 # LANGUAGE MODEL
 # --------------------------------------------------
 
+```python
 @st.cache_resource
 def create_llm(model_name, num_predict=128):
     """Initialize the configured local or hosted language model."""
 
     provider = os.getenv("LLM_PROVIDER")
 
-if not provider:
-    try:
-        provider = st.secrets.get("LLM_PROVIDER", "ollama")
-    except Exception:
-        provider = "ollama"
+    if not provider:
+        try:
+            provider = st.secrets.get("LLM_PROVIDER", "ollama")
+        except Exception:
+            provider = "ollama"
 
-provider = provider.lower()
+    provider = provider.lower()
 
     print(f"Initializing LLM provider: {provider}")
 
@@ -99,7 +100,10 @@ provider = provider.lower()
             )
 
         return ChatGroq(
-            model=os.getenv("GROQ_MODEL", "openai/gpt-oss-120b"),
+            model=os.getenv(
+                "GROQ_MODEL",
+                "openai/gpt-oss-120b"
+            ),
             api_key=api_key,
             temperature=0,
             max_tokens=num_predict,
@@ -116,6 +120,7 @@ provider = provider.lower()
     raise ValueError(
         f"Unsupported LLM_PROVIDER: {provider}"
     )
+```
 
 # --------------------------------------------------
 # CROSS-ENCODER RERANKER
