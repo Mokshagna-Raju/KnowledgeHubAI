@@ -131,7 +131,7 @@ RERANKER_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 # Cross-encoder scores are relevance logits, not probabilities. A score below
 # this configurable floor is treated as insufficient evidence for answering.
 # Start at 0.0 and tune using questions against your own PDFs if needed.
-RERANKER_MIN_SCORE = float(os.getenv("RERANKER_MIN_SCORE", "0.0"))
+RERANKER_MIN_SCORE = float(os.getenv("RERANKER_MIN_SCORE", "1.0"))
 
 
 @st.cache_resource
@@ -160,7 +160,8 @@ def retrieve_documents(
     question,
     vector_store,
     k=3,
-    selected_documents=None
+    selected_documents=None,
+    min_rerank_score=None
 ):
     """
     Retrieve document chunks using:
@@ -426,19 +427,30 @@ def retrieve_documents(
         reverse=True
     )
 
-    # Reject the entire retrieval result when even its best passage is below
-    # the relevance floor. This prevents unrelated PDFs from being shown as
-    # sources for questions such as asking about a person not in the documents.
-    if not reranked_results or float(reranked_results[0][1]) < RERANKER_MIN_SCORE:
-        best_score = (
-            float(reranked_results[0][1]) if reranked_results else None
-        )
+    # Filter each passage individually. Checking only the top score can allow
+    # weaker, unrelated passages from other PDFs to appear as sources.
+    relevance_floor = (
+        RERANKER_MIN_SCORE if min_rerank_score is None else min_rerank_score
+    )
+    qualifying_results = [
+        (document, score)
+        for document, score in reranked_results
+        if float(score) >= relevance_floor
+    ]
+
+    if not qualifying_results:
+        best_score = float(reranked_results[0][1]) if reranked_results else None
         print(
-            f"No sufficiently relevant passages. Best reranker score: "
-            f"{best_score}; required: {RERANKER_MIN_SCORE}"
+            f"No passages passed relevance filtering. Best reranker score: "
+            f"{best_score}; required: {relevance_floor}"
         )
         print("--- END HYBRID RETRIEVAL ---\n")
         return []
+
+    print(
+        f"Passages after relevance filtering: {len(qualifying_results)} "
+        f"(score >= {relevance_floor})"
+    )
 
     # --------------------------------------------------
     # 7. SELECT FINAL CHUNKS
@@ -447,7 +459,7 @@ def retrieve_documents(
     final_documents = []
     seen_content = set()
 
-    for document, score in reranked_results:
+    for document, score in qualifying_results:
 
         content = " ".join(
             document.page_content.lower().split()
@@ -886,7 +898,10 @@ def compare_documents(
             question=comparison_question,
             vector_store=vector_store,
             k=5,
-            selected_documents=[filename]
+            selected_documents=[filename],
+            # Comparison is explicitly scoped to the user-selected PDFs;
+            # don't apply the normal chat's relevance floor here.
+            min_rerank_score=float("-inf")
         )
 
         all_documents.extend(
